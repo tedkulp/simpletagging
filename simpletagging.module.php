@@ -71,7 +71,7 @@ class simpletagging extends CMSModule
 	  ---------------------------------------------------------*/
 	function GetVersion()
 	{
-		return '0.2';
+		return '0.2.1';
 	}
 
 	/*---------------------------------------------------------
@@ -287,7 +287,7 @@ class simpletagging extends CMSModule
 	   ---------------------------------------------------------*/
 	function MaximumCMSVersion()
 	{
-		return "1.3.0";
+		return "1.4.0";
 	}
 
 
