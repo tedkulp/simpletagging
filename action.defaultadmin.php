@@ -99,6 +99,3 @@ $this->smarty->assign('admin_header_text',$this->Lang('simpletagging_admin_heade
 $this->smarty->assign('admin_footer_text',$this->Lang('simpletagging_admin_footer'));
 
 echo $this->ProcessTemplate('adminpanel.tpl');
-
-
-?>

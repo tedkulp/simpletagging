@@ -71,7 +71,7 @@ class simpletagging extends CMSModule
 	  ---------------------------------------------------------*/
 	function GetVersion()
 	{
-		return '0.2.1';
+		return '0.3';
 	}
 
 	/*---------------------------------------------------------
@@ -268,29 +268,6 @@ class simpletagging extends CMSModule
 		return "1.2.5";
 	}
 
-
-	/*---------------------------------------------------------
-	   MaximumCMSVersion()
-	   You may want to prevent people from using your module in
-	   future versions of CMS Made Simple, especially if you
-	   think API features you use may change -- after all, you
-	   never really know how the CMS MS API could evolve.
-	   
-	   So, to prevent people from flooding you with bug reports
-	   when a new version of CMS MS is released, you can simply
-	   restrict the version. Then, of course, the onus is on you
-	   to release a new version of your module when a new version
-	   of the CMS is released...
-	   
-	   This method returns a string representing the
-	   maximum version that this module supports.
-	   ---------------------------------------------------------*/
-	function MaximumCMSVersion()
-	{
-		return "1.4.0";
-	}
-
-
 	/*---------------------------------------------------------
 	   InstallPostMessage()
 	   After installation, there may be things you want to
@@ -325,43 +302,43 @@ class simpletagging extends CMSModule
 		{
 			if ($eventname == 'ContentEditPost')
 			{
-				$pageid = $params[content]->mId;
-				$tags = $params[content]->mProperties->mPropertyValues[Tags];
+				$pageid = $params['content']->mId;
+				$tags = $params['content']->mProperties->mPropertyValues[Tags];
 				$this->removeTags($pageid);
 				$this->addTags($pageid, $tags);
 			}
 			if ($eventname == 'DeleteContentPost')
 			{
-				$this->removeTags($params[content]->mId);
+				$this->removeTags($params['content']->mId);
 			}
 		}
 	}
 
-	function removeTags($pageid)
+	function removeTags($pageid, $module = 'Core')
 	{
-		$db =& $this->GetDb();
-		$db->Execute("DELETE FROM ".cms_db_prefix()."module_simpletagging WHERE page_id = ".$pageid);
+		$db = $this->GetDb();
+		$db->Execute("DELETE FROM ".cms_db_prefix()."module_simpletagging WHERE page_id = ? AND module = ?", array($pageid, $module));
 	}
 
-	function addTags($pageid, $tags)
+	function addTags($pageid, $tags, $module = 'Core')
 	{
-		$db =& $this->GetDb();
+		$db = $this->GetDb();
 		$alltags = explode(',', $tags);
 		foreach ($alltags as $tag) 
 		{
 			$tag = trim($tag);
-			$db->Execute("INSERT INTO ".cms_db_prefix()."module_simpletagging (page_id, tag) VALUES (?,?)", array($pageid,$tag));
+			$db->Execute("INSERT INTO ".cms_db_prefix()."module_simpletagging (page_id, tag, module) VALUES (?,?,?)", array($pageid, $tag, $module));
 		}
 	}
 
 	function reloadTags()
 	{
-		$db =& $this->GetDb();
+		$db = $this->GetDb();
 		$db->Execute("DELETE FROM ".cms_db_prefix()."module_simpletagging");
 		$result = $db->Execute("SELECT * FROM ".cms_db_prefix()."content_props WHERE prop_name = 'Tags'");
 		while ($result && !$result->EOF) {
 			$pageid = $result->fields['content_id'];
-			$this->addTags($pageid, $result->fields['content']);
+			$this->addTags($pageid, $result->fields['content'], 'Core');
 			$result->moveNext();
 		}
 		$params = array('tab_message'=> 'tags_reloaded','active_tab' => 'tagcloudsettings');
@@ -401,5 +378,3 @@ class simpletagging extends CMSModule
 	}
 	
 }
-
-?>

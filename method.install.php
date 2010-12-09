@@ -26,6 +26,7 @@ if (!isset($gCms)) exit;
 		
         // table schema description
         $flds = "
+			module C(64) DEFAULT 'Core',
 			page_id I,
 			tag C(64)
 			";

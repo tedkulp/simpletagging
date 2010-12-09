@@ -12,16 +12,20 @@ if (!isset($gCms)) exit;
 	   a single call. For a great example of this, see the News
 	   module in the standard CMS install.
 	  ---------------------------------------------------------*/
-		$current_version = $oldversion;
-		switch($current_version)
+	$current_version = $oldversion;
+	switch($current_version)
+	{
+		case "0.2.1":
 		{
-			case "0.1":
-			     break;
-			case "1.1":
-			     break;
-		}
-		
-		// put mention into the admin log
-		$this->Audit( 0, $this->Lang('friendlyname'), $this->Lang('upgraded',$this->GetVersion()));
+			$db = $this->GetDb();
 
-?>
+			$dict = NewDataDictionary($db);
+			$sqlarray = $dict->AddColumnSQL(cms_db_prefix()."module_simpletagging", "module C(64) DEFAULT 'Core'");
+			$dict->ExecuteSQLArray( $sqlarray );
+
+			$db->Execute("UPDATE " . cms_db_prefix() . "module_simpletagging SET module = 'Core'");
+		}
+	}
+
+	// put mention into the admin log
+	$this->Audit( 0, $this->Lang('friendlyname'), $this->Lang('upgraded',$this->GetVersion()));

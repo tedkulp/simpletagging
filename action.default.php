@@ -21,19 +21,15 @@ $tags = array();
 while ($result && !$result->EOF) 
 {
 	$tmp = array();
-	$tmp[url] = $this->CreateLink($id, 'searchtags', $returnid, '', array('tag'=>$result->fields[tag]),'', true, false);
-	$tmp[title] = $result->fields['tag'];
-	$tmp[delimiter] = true;
+	$tmp['url'] = $this->CreateLink($id, 'searchtags', $returnid, '', array('tag'=>$result->fields['tag']),'', true, false);
+	$tmp['title'] = $result->fields['tag'];
+	$tmp['delimiter'] = true;
 	array_push($tags, $tmp);
 	$result->moveNext();
 }
 
 if (count($tags) > 0) {
-	$tags[count($tags) - 1][delimiter] = false;
+	$tags[count($tags) - 1]['delimiter'] = false;
 	$smarty->assign('tags', $tags);
 	echo $this->ProcessTemplateFromData($this->GetPreference('tagtemplate', $this->getDefaultTagTemplate()));
 }
-
-
-
-?>
