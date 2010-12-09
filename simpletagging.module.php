@@ -294,6 +294,9 @@ class simpletagging extends CMSModule
 	{
 		$this->AddEventHandler( 'Core', 'ContentEditPost', false );
 		$this->AddEventHandler( 'Core', 'ContentDeletePost', false );
+		$this->AddEventHandler( 'News', 'NewsArticleAdded', false );
+		$this->AddEventHandler( 'News', 'NewsArticleEdited', false );
+		$this->AddEventHandler( 'News', 'NewsArticleDeleted', false );
 	}
 
 	function DoEvent( $originator, $eventname, &$params )
@@ -303,13 +306,38 @@ class simpletagging extends CMSModule
 			if ($eventname == 'ContentEditPost')
 			{
 				$pageid = $params['content']->mId;
-				$tags = $params['content']->mProperties->mPropertyValues[Tags];
-				$this->removeTags($pageid);
-				$this->addTags($pageid, $tags);
+				if (isset($params['content']->mProperties->mPropertyValues['Tags']))
+				{
+					$tags = $params['content']->mProperties->mPropertyValues['Tags'];
+					$this->removeTags($pageid);
+					$this->addTags($pageid, $tags);
+				}
 			}
 			if ($eventname == 'DeleteContentPost')
 			{
 				$this->removeTags($params['content']->mId);
+			}
+		}
+		if ($originator == 'News')
+		{
+			if ($eventname == 'NewsArticleAdded' || $eventname == 'NewsArticleEdited')
+			{
+				$pageid = $params['news_id'];
+
+				$rows = $db->GetAll('select fd.name, fv.value from '.cms_db_prefix().'module_news_fieldvals fv inner join '.cms_db_prefix().'module_news_fielddefs fd on fd.id = fv.fielddef_id where fv.news_id = ?', array($pageid));
+				foreach ($rows as $one_row)
+				{
+					if (strtolower($one_row['name']) == 'tags')
+					{
+						$this->removeTags($pageid, 'News');
+						$this->addTags($pageid, $one_row['value'], 'News');
+					}
+				}
+			}
+			if ($eventname == 'NewsArticleDeleted')
+			{
+				$pageid = $params['news_id'];
+				$this->removeTags($pageid, 'News');
 			}
 		}
 	}
@@ -327,7 +355,10 @@ class simpletagging extends CMSModule
 		foreach ($alltags as $tag) 
 		{
 			$tag = trim($tag);
-			$db->Execute("INSERT INTO ".cms_db_prefix()."module_simpletagging (page_id, tag, module) VALUES (?,?,?)", array($pageid, $tag, $module));
+			if ($tag != '')
+			{
+				$db->Execute("INSERT INTO ".cms_db_prefix()."module_simpletagging (page_id, tag, module) VALUES (?,?,?)", array($pageid, $tag, $module));
+			}
 		}
 	}
 
@@ -336,11 +367,24 @@ class simpletagging extends CMSModule
 		$db = $this->GetDb();
 		$db->Execute("DELETE FROM ".cms_db_prefix()."module_simpletagging");
 		$result = $db->Execute("SELECT * FROM ".cms_db_prefix()."content_props WHERE prop_name = 'Tags'");
-		while ($result && !$result->EOF) {
+		while ($result && !$result->EOF)
+		{
 			$pageid = $result->fields['content_id'];
 			$this->addTags($pageid, $result->fields['content'], 'Core');
 			$result->moveNext();
 		}
+
+		#Now news
+		$rows = $db->GetAll('select fv.news_id, fd.name, fv.value from '.cms_db_prefix().'module_news_fieldvals fv inner join '.cms_db_prefix().'module_news_fielddefs fd on fd.id = fv.fielddef_id');
+		foreach ($rows as $one_row)
+		{
+			if (strtolower($one_row['name']) == 'tags')
+			{
+				$this->removeTags($one_row['news_id'], 'News');
+				$this->addTags($one_row['news_id'], $one_row['value'], 'News');
+			}
+		}
+
 		$params = array('tab_message'=> 'tags_reloaded','active_tab' => 'tagcloudsettings');
 		return $params;
 
