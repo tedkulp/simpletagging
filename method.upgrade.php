@@ -24,6 +24,8 @@ if (!isset($gCms)) exit;
 			$dict->ExecuteSQLArray( $sqlarray );
 
 			$db->Execute("UPDATE " . cms_db_prefix() . "module_simpletagging SET module = 'Core'");
+
+			$this->RegisterEvents();
 		}
 	}
 

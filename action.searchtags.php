@@ -14,7 +14,7 @@ if (!isset($gCms)) exit;
 
 $this->smarty->assign('searchtag', $params[tag]);
 
-$q = "SELECT page_id FROM ".cms_db_prefix()."module_simpletagging WHERE tag = '$params[tag]'";
+$q = "SELECT module, page_id FROM ".cms_db_prefix()."module_simpletagging WHERE tag = '{$params['tag']}'";
 $result = $db->Execute($q);
 
 $results = array();
@@ -23,18 +23,31 @@ $hm =& $gCms->GetHierarchyManager();
 while ($result && !$result->EOF) 
 {
 	$res = array();
-	$curnode =& $hm->getNodeById($result->fields[page_id]);
-	$curcontent =& $curnode->GetContent();
-	$res[url] = $curcontent->GetURL();
-	$res[title] = $curcontent->mName;
-	$res[othertags] = array();
-	$result1 = $db->Execute("SELECT tag FROM ".cms_db_prefix()."module_simpletagging WHERE page_id = ".$result->fields[page_id]." ORDER BY tag ASC");
+	if ($result->fields['module'] == 'Core')
+	{
+		$curnode =& $hm->getNodeById($result->fields['page_id']);
+		$curcontent =& $curnode->GetContent();
+		$res['url'] = $curcontent->GetURL();
+		$res['title'] = $curcontent->mName;
+	}
+	else if ($result->fields['module'] == 'News')
+	{
+		$row = $db->GetRow('SELECT * FROM ' . cms_db_prefix() . 'module_news WHERE news_id = ?', array($result->fields['page_id']));
+		if (!$row)
+		{
+			continue;
+		}
+		$res['url'] = 'test';
+		$res['title'] = $row['news_title'];
+	}
+	$res['othertags'] = array();
+	$result1 = $db->Execute("SELECT tag FROM ".cms_db_prefix()."module_simpletagging WHERE page_id = ".$result->fields[page_id]." AND module = ? ORDER BY tag ASC", array($result->fields['module']));
 	while ($result1 && !$result1->EOF) 
 	{
-		if ($result1->fields[tag] != $params[tag])
+		if ($result1->fields['tag'] != $params['tag'])
 		{
-			$taglink = $this->CreateLink($id, 'searchtags', $returnid, '', array('tag'=>$result1->fields[tag]),'', true, false);
-			array_push($res[othertags], "<a href='".$taglink."' class='taglink'>".$result1->fields[tag]."</a>");
+			$taglink = $this->CreateLink($id, 'searchtags', $returnid, '', array('tag'=>$result1->fields['tag']),'', true, false);
+			array_push($res['othertags'], "<a href='".$taglink."' class='taglink'>".$result1->fields['tag']."</a>");
 		}
 		$result1->moveNext();
 	}
