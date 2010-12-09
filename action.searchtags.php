@@ -37,8 +37,28 @@ while ($result && !$result->EOF)
 		{
 			continue;
 		}
-		$res['url'] = 'test';
 		$res['title'] = $row['news_title'];
+		$news = $this->GetModuleInstance('News');
+		if ($news)
+		{
+			$result1 = array();
+			//0 position is the prefix displayed in the list results.
+			$result1[0] = $news->GetFriendlyName();
+
+			//1 position is the title
+			$result1[1] = $row['news_title'];
+
+			//2 position is the URL to the title.
+			$aliased_title = munge_string_to_url($row['news_title']);
+			$prettyurl = 'news/' . $result->fields['page_id'] . '/' . $returnid . "/$aliased_title";
+			if (!empty($row['news_url']))
+			{
+				$prettyurl = $row['news_url'];
+			}
+			$result1[2] = $news->CreateLink('cntnt01', 'detail', $returnid, '', array('articleid' => $result->fields['page_id']) ,'', true, false, '', true, $prettyurl);
+
+			$res['url'] = $result1[2];
+		}
 	}
 	$res['othertags'] = array();
 	$result1 = $db->Execute("SELECT tag FROM ".cms_db_prefix()."module_simpletagging WHERE page_id = ".$result->fields[page_id]." AND module = ? ORDER BY tag ASC", array($result->fields['module']));
