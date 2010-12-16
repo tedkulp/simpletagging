@@ -104,6 +104,18 @@ This will add another (hidden) content block to the page which you can edit from
 <p>To style the tag links, create a css class for <i>a.taglink</i> (used in the tag list and the tag search results) and <i>a.tagcloudlink</i> (used in the tag cloud).</p>
 <p>To change the appearance of the tag search results, change the "Tag search template" in the administration panel. To change the minimum and maximum font sizes used in the tag cloud, change the values in the "Tag cloud settings" administration panel.</p>
 <p>To adjust the settings for your related pages, edit the settings in the administration panel and change the values for related pages to your likings. The "tag coverage" is a percentage to determine if a page is really related - the default is 50 which means that a related page must contain at least half of the tags that have been used in the original page. The "Maximum related pages" option determines how many related pages (that match the tag coverage) shoud be displayed.
+<h3>Special Feature: News Editing Cloud</h3>
+<p>For a client, I\'ve added the ability to show a list of the current tags right under your Tags field when editing News articles.  However, it does require hacking
+a file in News. This will break everytime you upgrade CMSMS, so please take that into consideration when using this feature.  Still interested?</p>
+<p>Find the templates/editarticle.tpl file in News and open it in your favorite editor.  After <em>&lt;p class="pageinput"&gt;{$field->field}&lt;/p&gt;</em>. After it, add the following code:</p>
+<p>
+{if $field->prompt == \'Tags\' || $field->prompt == \'tags\'}<br />
+    &lt;p class="pageinput" style="padding: 1em;"&gt;<br />
+        {cms_module module=\'simpletagging\' action=\'newscloud\' field_text=$field-&gt;field}<br />
+    &lt;/p&gt;<br />
+{/if}
+</p>
+<p>Then save the file. You\'re done.</p>
 <h3>Support</h3>
 <p>As per the GPL, this software is provided as-is. Please read the text of the license for the full disclaimer.</p>
 <h3>Copyright and License</h3>
