@@ -12,8 +12,16 @@ if (!isset($gCms)) exit;
    
 */
 
-$q = "SELECT tag FROM ".cms_db_prefix()."module_simpletagging WHERE page_id = ".$gCms->variables['content_id'];
-$result = $db->Execute($q);
+$content_id = $gCms->variables['content_id'];
+if (isset($params['content_id']))
+	$content_id = $params['content_id'];
+
+$module_name = 'Core';
+if (isset($params['module_name']))
+	$module_name = $params['module_name'];
+
+$q = "SELECT tag FROM ".cms_db_prefix()."module_simpletagging WHERE page_id = ? AND module = ?";
+$result = $db->Execute($q, array($content_id, $module_name));
 
 $taglist = "";
 $tags = array();
