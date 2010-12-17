@@ -301,6 +301,9 @@ class simpletagging extends CMSModule
 
 	function DoEvent( $originator, $eventname, &$params )
 	{
+		global $gCms;
+		$db = $gCms->GetDb();
+
 		if ($originator == 'Core')
 		{
 			if ($eventname == 'ContentEditPost')
